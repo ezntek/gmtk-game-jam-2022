@@ -15,6 +15,7 @@ type Cell struct {
 }
 
 func (cell Cell) Draw() {
+	rl.DrawRectangleRec(cell.borderRect, color.RGBA{234, 234, 234, 255})
 	if !cell.IsAlive {
 		rl.DrawRectangleRec(cell.innerRect, rl.LightGray)
 	} else {
@@ -33,15 +34,15 @@ func (cell Cell) Draw() {
 			break
 		}
 	}
-	rl.DrawRectangleRec(cell.borderRect, color.RGBA{234, 234, 234, 255})
+
 }
 
 func New(atLocation rl.Vector2, size int32) *Cell {
 	return &Cell{
-		borderRect:   rl.NewRectangle(atLocation.X, atLocation.Y, float32(size-10), float32(size-10)),
-		innerRect:    rl.NewRectangle(atLocation.X+5, atLocation.Y+5, float32(size-10), float32(size-10)),
+		borderRect:   rl.NewRectangle(atLocation.X, atLocation.Y, float32(size), float32(size)),
+		innerRect:    rl.NewRectangle(atLocation.X+2, atLocation.Y+2, float32(size-4), float32(size-4)),
 		IsAlive:      false,
 		IsGenerator:  false,
-		CellBelogsTo: "dead",
+		CellBelogsTo: "player",
 	}
 }
