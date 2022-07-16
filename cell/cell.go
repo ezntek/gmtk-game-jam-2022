@@ -23,12 +23,12 @@ func (cell *Cell) Draw() {
 		case "player":
 			rl.DrawRectangleRec(cell.InnerRect, rl.Lime)
 			if cell.IsGenerator {
-				rl.DrawRectangle(int32(cell.InnerRect.X+cell.InnerRect.Width/4), int32(cell.InnerRect.Y+cell.InnerRect.Height/4), int32(cell.InnerRect.Width/6), int32(cell.InnerRect.Height/6), rl.LightGray)
+				rl.DrawRectangle(cell.InnerRect.ToInt32().X+2, cell.InnerRect.ToInt32().Y+2, 7, 7, rl.DarkGreen)
 			}
 		case "enemy":
-			rl.DrawRectangleRec(cell.InnerRect, rl.Red)
+			rl.DrawRectangleRec(cell.InnerRect, rl.Pink)
 			if cell.IsGenerator {
-				rl.DrawRectangle(int32(cell.InnerRect.X+cell.InnerRect.Width/4), int32(cell.InnerRect.Y+cell.InnerRect.Height/4), int32(cell.InnerRect.Width/6), int32(cell.InnerRect.Height/6), rl.LightGray)
+				rl.DrawRectangle(cell.InnerRect.ToInt32().X+2, cell.InnerRect.ToInt32().Y+2, 7, 7, rl.Red)
 			}
 		default:
 			break
@@ -40,7 +40,7 @@ func (cell *Cell) Draw() {
 func New(atLocation rl.Vector2, size int32) Cell {
 	return Cell{
 		borderRect:   rl.NewRectangle(atLocation.X, atLocation.Y, float32(size), float32(size)),
-		InnerRect:    rl.NewRectangle(atLocation.X+2, atLocation.Y+2, float32(size-4), float32(size-4)),
+		InnerRect:    rl.NewRectangle(atLocation.X+1, atLocation.Y+1, float32(size-2), float32(size-2)),
 		IsAlive:      false,
 		IsGenerator:  false,
 		CellBelogsTo: "player",
