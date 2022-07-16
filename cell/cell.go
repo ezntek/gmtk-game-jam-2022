@@ -37,12 +37,12 @@ func (cell *Cell) Draw() {
 
 }
 
-func New(atLocation rl.Vector2, size int32) Cell {
+func New(atLocation rl.Vector2, size int32, as string) Cell {
 	return Cell{
 		borderRect:   rl.NewRectangle(atLocation.X, atLocation.Y, float32(size), float32(size)),
 		InnerRect:    rl.NewRectangle(atLocation.X+1, atLocation.Y+1, float32(size-2), float32(size-2)),
 		IsAlive:      false,
 		IsGenerator:  false,
-		CellBelogsTo: "player",
+		CellBelogsTo: as,
 	}
 }

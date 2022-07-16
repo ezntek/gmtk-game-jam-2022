@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"gmtk_2022/cell"
 	"math/rand"
 	"time"
@@ -15,11 +16,9 @@ func DrawGrid(grid *[][]cell.Cell) {
 		}
 	}
 }
-func CellBelogsTo(grid *[][]cell.Cell, x, y int) string { return (*grid)[y][x+57].CellBelogsTo }
-func IsCellAlive(grid *[][]cell.Cell, x, y int) bool    { return (*grid)[y][x+57].IsAlive }
-func ChangeCellState(grid *[][]cell.Cell, to bool, x, y int) {
-	(*grid)[y][x+57].IsAlive = to
-}
+func CellBelogsTo(grid *[][]cell.Cell, x, y int) string      { return (*grid)[y][x+57].CellBelogsTo }
+func IsCellAlive(grid *[][]cell.Cell, x, y int) bool         { return (*grid)[y][x+57].IsAlive }
+func ChangeCellState(grid *[][]cell.Cell, to bool, x, y int) { (*grid)[y][x+57].IsAlive = to }
 func MakeGenerator(grid *[][]cell.Cell, ungeneratorify bool, x, y int) {
 	if !ungeneratorify {
 		(*grid)[y][x+57].IsGenerator = true
@@ -31,41 +30,62 @@ func MakeGenerator(grid *[][]cell.Cell, ungeneratorify bool, x, y int) {
 	}
 
 }
-func RollDice(dicAmount int) int {
-	if dicAmount >= 1 {
+func RollDice(diceAmount int) int {
+	if diceAmount >= 1 {
 		rand.Seed(time.Now().Local().Unix() + (7 / 3))
-		dicAmount--
+		diceAmount--
 		return 1 + rand.Intn(6-1)
 	}
 	return 0
 }
-func Movement(grid *[][]cell.Cell, generatorCoordinates *rl.Vector2) {
-	if rl.IsKeyPressed(rl.KeySpace) {
-		ChangeCellState(grid, true, int(generatorCoordinates.X-1), int(generatorCoordinates.Y))
-		ChangeCellState(grid, true, int(generatorCoordinates.X+1), int(generatorCoordinates.Y))
-		ChangeCellState(grid, true, int(generatorCoordinates.X), int(generatorCoordinates.Y+1))
-		ChangeCellState(grid, true, int(generatorCoordinates.X), int(generatorCoordinates.Y-1))
-		ChangeCellState(grid, true, int(generatorCoordinates.X-1), int(generatorCoordinates.Y-1))
-		ChangeCellState(grid, true, int(generatorCoordinates.X-1), int(generatorCoordinates.Y+1))
-		ChangeCellState(grid, true, int(generatorCoordinates.X+1), int(generatorCoordinates.Y-1))
-		ChangeCellState(grid, true, int(generatorCoordinates.X+1), int(generatorCoordinates.Y+1))
+func Movement(grid *[][]cell.Cell, enemy cell.EnemyGeneratorCell, generatorCoordinates *rl.Vector2, ctr *int) {
+	if *ctr%18 == 0 {
+		enemy.Update()
+		// left row
+		if generatorCoordinates.X-1 >= 0 {
+			if generatorCoordinates.Y-1 >= 0 {
+				ChangeCellState(grid, true, int(generatorCoordinates.X)-1, int(generatorCoordinates.Y)-1)
+			}
+			ChangeCellState(grid, true, int(generatorCoordinates.X)-1, int(generatorCoordinates.Y))
+			if generatorCoordinates.Y+1 <= 37 {
+				ChangeCellState(grid, true, int(generatorCoordinates.X)-1, int(generatorCoordinates.Y)+1)
+			}
+		}
+		// middle two
+		if generatorCoordinates.Y+1 <= 37 {
+			ChangeCellState(grid, true, int(generatorCoordinates.X), int(generatorCoordinates.Y)+1)
+		}
+		if generatorCoordinates.Y-1 >= 0 {
+			ChangeCellState(grid, true, int(generatorCoordinates.X), int(generatorCoordinates.Y)-1)
+		}
+
+		// right row
+		if generatorCoordinates.X+1 <= 56 {
+			if generatorCoordinates.Y-1 >= 0 {
+				ChangeCellState(grid, true, int(generatorCoordinates.X)+1, int(generatorCoordinates.Y)-1)
+			}
+			ChangeCellState(grid, true, int(generatorCoordinates.X)+1, int(generatorCoordinates.Y))
+			if generatorCoordinates.Y+1 <= 37 {
+				ChangeCellState(grid, true, int(generatorCoordinates.X)+1, int(generatorCoordinates.Y)+1)
+			}
+		}
 	}
-	if rl.IsKeyPressed(rl.KeyLeft) && IsCellAlive(grid, int(generatorCoordinates.X-1), int(generatorCoordinates.Y)) && CellBelogsTo(grid, int(generatorCoordinates.X-1), int(generatorCoordinates.Y)) == "player" {
+	if rl.IsKeyPressed(rl.KeyLeft) && IsCellAlive(grid, int(generatorCoordinates.X-1), int(generatorCoordinates.Y)) && CellBelogsTo(grid, int(generatorCoordinates.X-1), int(generatorCoordinates.Y)) == "player" && generatorCoordinates.X-1 > 0 {
 		MakeGenerator(grid, false, int(generatorCoordinates.X-1), int(generatorCoordinates.Y))
 		MakeGenerator(grid, true, int(generatorCoordinates.X), int(generatorCoordinates.Y))
 		generatorCoordinates.X -= 1
 	}
-	if rl.IsKeyPressed(rl.KeyRight) && IsCellAlive(grid, int(generatorCoordinates.X+1), int(generatorCoordinates.Y)) && CellBelogsTo(grid, int(generatorCoordinates.X+1), int(generatorCoordinates.Y)) == "player" {
+	if rl.IsKeyPressed(rl.KeyRight) && IsCellAlive(grid, int(generatorCoordinates.X+1), int(generatorCoordinates.Y)) && CellBelogsTo(grid, int(generatorCoordinates.X+1), int(generatorCoordinates.Y)) == "player" && generatorCoordinates.X+1 < 56 {
 		MakeGenerator(grid, false, int(generatorCoordinates.X+1), int(generatorCoordinates.Y))
 		MakeGenerator(grid, true, int(generatorCoordinates.X), int(generatorCoordinates.Y))
 		generatorCoordinates.X += 1
 	}
-	if rl.IsKeyPressed(rl.KeyUp) && IsCellAlive(grid, int(generatorCoordinates.X), int(generatorCoordinates.Y-1)) && CellBelogsTo(grid, int(generatorCoordinates.X), int(generatorCoordinates.Y-1)) == "player" {
+	if rl.IsKeyPressed(rl.KeyUp) && IsCellAlive(grid, int(generatorCoordinates.X), int(generatorCoordinates.Y-1)) && CellBelogsTo(grid, int(generatorCoordinates.X), int(generatorCoordinates.Y-1)) == "player" && generatorCoordinates.Y-1 > 0 {
 		MakeGenerator(grid, false, int(generatorCoordinates.X), int(generatorCoordinates.Y-1))
 		MakeGenerator(grid, true, int(generatorCoordinates.X), int(generatorCoordinates.Y))
 		generatorCoordinates.Y -= 1
 	}
-	if rl.IsKeyPressed(rl.KeyDown) && IsCellAlive(grid, int(generatorCoordinates.X), int(generatorCoordinates.Y+1)) && CellBelogsTo(grid, int(generatorCoordinates.X), int(generatorCoordinates.Y+1)) == "player" {
+	if rl.IsKeyPressed(rl.KeyDown) && IsCellAlive(grid, int(generatorCoordinates.X), int(generatorCoordinates.Y+1)) && CellBelogsTo(grid, int(generatorCoordinates.X), int(generatorCoordinates.Y+1)) == "player" && generatorCoordinates.Y+1 < 37 {
 		MakeGenerator(grid, false, int(generatorCoordinates.X), int(generatorCoordinates.Y+1))
 		MakeGenerator(grid, true, int(generatorCoordinates.X), int(generatorCoordinates.Y))
 		generatorCoordinates.Y += 1
@@ -80,12 +100,12 @@ func main() {
 	rl.SetTargetFPS(60)
 	gridSize := rl.Vector2{X: 57, Y: 38}
 	cellWidth := 20
-
+	var counter int
 	var mainGrid [][]cell.Cell
 	for yptr := 0; yptr < int(gridSize.Y)*cellWidth; yptr += int(cellWidth) {
 		mainGrid = append(mainGrid, make([]cell.Cell, int(gridSize.X)))
 		for xptr := 0; xptr < int(gridSize.X)*cellWidth; xptr += int(cellWidth) {
-			mainGrid[yptr/int(cellWidth)] = append(mainGrid[yptr/int(cellWidth)], cell.New(rl.Vector2{X: float32(xptr), Y: float32(yptr)}, int32(cellWidth)))
+			mainGrid[yptr/int(cellWidth)] = append(mainGrid[yptr/int(cellWidth)], cell.New(rl.Vector2{X: float32(xptr), Y: float32(yptr)}, int32(cellWidth), "player"))
 		}
 	}
 
@@ -99,12 +119,14 @@ func main() {
 	MakeGenerator(&mainGrid, false, int(generatorCoordinates.X), int(generatorCoordinates.Y))
 
 	for !rl.WindowShouldClose() {
-		Movement(&mainGrid, &generatorCoordinates)
+		counter++
+		Movement(&mainGrid, &generatorCoordinates, &counter)
 		rl.BeginDrawing()
 		rl.ClearBackground(rl.RayWhite)
 		rl.BeginMode2D(cam)
 		DrawGrid(&mainGrid)
 		rl.EndMode2D()
+		rl.DrawText(fmt.Sprintf("Generator on (%0.0f, %0.0f)", generatorCoordinates.X, generatorCoordinates.Y), 20, 20, 30, rl.Black)
 		rl.EndDrawing()
 	}
 }
