@@ -30,7 +30,7 @@ func New(posx int32, posy int32, cellWidth int32, gridSize int) *Grid {
 	for yptr := 0; yptr < gridSize*int(cellWidth); yptr += int(cellWidth) {
 		gridTmp = append(gridTmp, make([]cell.Cell, gridSize))
 		for xptr := 0; xptr < gridSize*int(cellWidth); xptr += int(cellWidth) {
-			gridTmp[yptr/int(cellWidth)] = append(gridTmp[yptr/int(cellWidth)], cell.New(rl.Vector2{X: float32(xptr), Y: float32(yptr)}, 50))
+			gridTmp[yptr/int(cellWidth)] = append(gridTmp[yptr/int(cellWidth)], cell.New(rl.Vector2{X: float32(xptr), Y: float32(yptr)}, cellWidth))
 		}
 	}
 	return &Grid{
