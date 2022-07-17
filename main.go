@@ -48,7 +48,7 @@ func RollDice(diceAmount int) int {
 func Movement(grid *[][]cell.Cell, generatorCoordinates *rl.Vector2, ctr *int) {
 	if *ctr%18 == 0 {
 		rand.Seed(time.Now().UnixNano())
-		if *ctr%(18*6) == 0 {
+		if *ctr%(18*9) == 0 {
 			enemyList = append(enemyList, cell.NewEnemy())
 		}
 		//var randval int
@@ -282,6 +282,10 @@ func main() {
 			rl.EndDrawing()
 		}
 		if screen == "game" {
+			if playerTileCount*100/(gridSize.X*gridSize.Y) > 50 {
+				screen = "governmentdestroyed"
+			}
+
 			Movement(&mainGrid, &generatorCoordinates, &counter)
 			rl.BeginDrawing()
 			rl.ClearBackground(rl.RayWhite)
@@ -291,6 +295,18 @@ func main() {
 			rl.DrawRectangle(20, 20, 110, 30, rl.Black)
 			rl.DrawRectangle(25, 25, 100, 20, rl.RayWhite)
 			rl.DrawRectangle(25, 25, (int32(playerTileCount) * 100 / (int32(gridSize.X) * int32(gridSize.Y))), 20, rl.SkyBlue)
+			rl.DrawRectangle(20, 60, 110, 30, rl.Black)
+			rl.DrawRectangle(25, 65, 100, 20, rl.RayWhite)
+			rl.DrawRectangle(25, 65, (int32(enemyTileCount) * 100 / (int32(gridSize.X) * int32(gridSize.Y))), 20, rl.Pink)
+			rl.EndDrawing()
+		}
+		if screen == "governmentdestroyed" {
+			if rl.IsKeyPressed(rl.KeyEnter) {
+				screen = "title"
+			}
+			rl.BeginDrawing()
+			rl.DrawText("GOVERNMENT DESTROYED.", 30, 30, 60, rl.Black)
+			rl.DrawText("You conquered more than 50 percent of the map. congrats! Press [enter] to go back to title screen", 30, 100, 20, rl.Gray)
 			rl.EndDrawing()
 		}
 	}
