@@ -13,10 +13,6 @@ type Cell struct {
 	IsAlive             bool
 	IsGenerator         bool
 	CellBelogsTo        string
-	EnemyGenTexture     rl.Texture2D
-	EnemyTexture        rl.Texture2D
-	PlayerTexture       rl.Texture2D
-	PlayerGenTexture    rl.Texture2D
 }
 
 func (cell *Cell) Draw() {
@@ -26,9 +22,9 @@ func (cell *Cell) Draw() {
 	} else {
 		switch cell.CellBelogsTo {
 		case "player":
-			rl.DrawRectangleRec(cell.InnerRect, rl.Lime)
+			rl.DrawRectangleRec(cell.InnerRect, rl.SkyBlue)
 			if cell.IsGenerator {
-				rl.DrawRectangle(cell.InnerRect.ToInt32().X+2, cell.InnerRect.ToInt32().Y+2, (cell.InnerRect.ToInt32().Width/2)-2, (cell.InnerRect.ToInt32().Height/2)-2, rl.DarkGreen)
+				rl.DrawRectangle(cell.InnerRect.ToInt32().X+2, cell.InnerRect.ToInt32().Y+2, (cell.InnerRect.ToInt32().Width/2)-2, (cell.InnerRect.ToInt32().Height/2)-2, rl.DarkBlue)
 				//rl.DrawTextureRec(cell.PlayerGenTexture, cell.borderRect, rl.Vector2{X: cell.InnerRect.X - 1, Y: cell.InnerRect.Y - 1}, rl.RayWhite)
 			}
 		case "enemy":
@@ -52,9 +48,5 @@ func New(atLocation rl.Vector2, size int32, as string) Cell {
 		IsAlive:             false,
 		IsGenerator:         false,
 		CellBelogsTo:        "player",
-		//EnemyGenTexture:     rl.LoadTexture("resources/EnemyGeneratorTile.png"),
-		//EnemyTexture:        rl.LoadTexture("resources/EnemyTile.png"),
-		//PlayerTexture:       rl.LoadTexture("resources/PlayerTile.png"),
-		//PlayerGenTexture:    rl.LoadTexture("resources/PlayerGeneratorTile.png"),
 	}
 }
