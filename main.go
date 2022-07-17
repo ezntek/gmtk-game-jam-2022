@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"gmtk_2022/cell"
 	"math/rand"
 	"time"
@@ -11,6 +12,7 @@ import (
 var playerTileCount float32
 var enemyTileCount float32
 var enemyList []cell.EnemyGeneratorCell
+var remainingTurns int = 5
 
 func DrawGrid(grid *[][]cell.Cell) {
 	for _, column := range *grid {
@@ -72,6 +74,7 @@ func Movement(grid *[][]cell.Cell, generatorCoordinates *rl.Vector2, ctr *int) {
 			enemy.Update(grid, *generatorCoordinates, &enemyTileCount, &playerTileCount)
 		}
 		// left row
+		old := playerTileCount
 		if generatorCoordinates.X-1 >= 0 {
 			if generatorCoordinates.Y-1 >= 0 {
 				if !IsCellAlive(grid, int(generatorCoordinates.X)-1, int(generatorCoordinates.Y)-1) {
@@ -139,6 +142,9 @@ func Movement(grid *[][]cell.Cell, generatorCoordinates *rl.Vector2, ctr *int) {
 				ChangeCellOwnership(grid, "player", int(generatorCoordinates.X+1), int(generatorCoordinates.Y-1))
 				ChangeCellState(grid, true, int(generatorCoordinates.X)+1, int(generatorCoordinates.Y)-1)
 			}
+		}
+		if playerTileCount > old {
+			remainingTurns--
 		}
 	}
 	if rl.IsKeyPressed(rl.KeyLeft) && IsCellAlive(grid, int(generatorCoordinates.X-1), int(generatorCoordinates.Y)) && CellBelogsTo(grid, int(generatorCoordinates.X-1), int(generatorCoordinates.Y)) == "player" && generatorCoordinates.X-1 > 0 {
@@ -222,7 +228,7 @@ func main() {
 		"eason is an asshole - kittycat",
 		"peterguo2009 makes music on soundcloud",
 	}
-
+	var label string
 	var configuredDiceAmplifier bool = false
 	var doneConfiguringDiceAmplifier bool = false
 	var motd = motdEntries[rand.Intn(len(motdEntries))]
@@ -282,8 +288,16 @@ func main() {
 			rl.EndDrawing()
 		}
 		if screen == "game" {
+			if remainingTurns < 1 {
+				screen = "death"
+			}
 			if playerTileCount*100/(gridSize.X*gridSize.Y) > 50 {
 				screen = "governmentdestroyed"
+			}
+			if rl.IsKeyPressed(rl.KeyEnter) {
+				a := rand.Intn(20)
+				remainingTurns += a
+				label = fmt.Sprintf("You got %d more spreads!", a)
 			}
 
 			Movement(&mainGrid, &generatorCoordinates, &counter)
@@ -298,6 +312,7 @@ func main() {
 			rl.DrawRectangle(20, 60, 110, 30, rl.Black)
 			rl.DrawRectangle(25, 65, 100, 20, rl.RayWhite)
 			rl.DrawRectangle(25, 65, (int32(enemyTileCount) * 100 / (int32(gridSize.X) * int32(gridSize.Y))), 20, rl.Pink)
+			rl.DrawText(fmt.Sprintf("%d spreads left [%s]", remainingTurns, label), 140, 20, 20, rl.Gray)
 			rl.EndDrawing()
 		}
 		if screen == "governmentdestroyed" {
@@ -305,8 +320,19 @@ func main() {
 				screen = "title"
 			}
 			rl.BeginDrawing()
+			rl.ClearBackground(rl.RayWhite)
 			rl.DrawText("GOVERNMENT DESTROYED.", 30, 30, 60, rl.Black)
 			rl.DrawText("You conquered more than 50 percent of the map. congrats! Press [enter] to go back to title screen", 30, 100, 20, rl.Gray)
+			rl.EndDrawing()
+		}
+		if screen == "death" {
+			if rl.IsKeyPressed(rl.KeyEnter) {
+				screen = "title"
+			}
+			rl.BeginDrawing()
+			rl.ClearBackground(rl.RayWhite)
+			rl.DrawText("You died...", 30, 30, 50, rl.Black)
+			rl.DrawText("Press [enter] to play again", 30, 90, 20, rl.Gray)
 			rl.EndDrawing()
 		}
 	}
