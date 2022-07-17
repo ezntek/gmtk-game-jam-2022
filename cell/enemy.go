@@ -64,7 +64,7 @@ func (enemy *EnemyGeneratorCell) Update(grid *[][]Cell, playerLocation rl.Vector
 			enemy.AtLocation.Y += 1
 		}
 
-		enemy.MoveGenerator(grid, enemy.Direction)
+		//enemy.MoveGenerator(grid, enemy.Direction)
 		//
 		if enemy.AtLocation.X-1 >= 0 {
 			if enemy.AtLocation.Y-1 >= 0 {
