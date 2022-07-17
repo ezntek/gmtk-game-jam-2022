@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"gmtk_2022/cell"
 	"math/rand"
 	"time"
@@ -8,6 +9,7 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
+var playerTileCount float32
 var enemyList []cell.EnemyGeneratorCell
 
 func DrawGrid(grid *[][]cell.Cell) {
@@ -46,10 +48,12 @@ func RollDice(diceAmount int) int {
 func Movement(grid *[][]cell.Cell, generatorCoordinates *rl.Vector2, ctr *int) {
 	if *ctr%18 == 0 {
 		rand.Seed(time.Now().UnixNano())
-		enemyList = append(enemyList, cell.NewEnemy())
+		if *ctr%416 == 0 {
+			enemyList = append(enemyList, cell.NewEnemy())
+		}
 		//var randval int
 		//rv := rand.Intn(4)
-		for _, enemy := range enemyList {
+		for i, enemy := range enemyList {
 			if !(*grid)[int(enemy.AtLocation.Y)][int(enemy.AtLocation.X)+57].EnemyHasSetLocation {
 				(*grid)[int(enemy.AtLocation.Y)][int(enemy.AtLocation.X)+57].EnemyHasSetLocation = true
 				(*grid)[int(enemy.AtLocation.Y)][int(enemy.AtLocation.X)+57].IsGenerator = true
@@ -59,21 +63,35 @@ func Movement(grid *[][]cell.Cell, generatorCoordinates *rl.Vector2, ctr *int) {
 			//(*grid)[int(enemy.AtLocation.Y)][int(enemy.AtLocation.X)+57].IsGenerator = true
 			//(*grid)[int(enemy.AtLocation.Y)][int(enemy.AtLocation.X)+57].IsAlive = true
 			//(*grid)[int(enemy.AtLocation.Y)][int(enemy.AtLocation.X)+57].CellBelogsTo = "enemy"
+
+			if !enemy.IsActive {
+				enemyList[i] = enemyList[len(enemyList)-1]
+				enemyList = enemyList[:len(enemyList)-1]
+				break
+			}
 			enemy.Update(grid, *generatorCoordinates)
 		}
 		// left row
 		if generatorCoordinates.X-1 >= 0 {
 			if generatorCoordinates.Y-1 >= 0 {
+				if !IsCellAlive(grid, int(generatorCoordinates.X)-1, int(generatorCoordinates.Y)-1) {
+					playerTileCount++
+				}
 				MakeGenerator(grid, true, int(generatorCoordinates.X-1), int(generatorCoordinates.Y-1))
 				ChangeCellOwnership(grid, "player", int(generatorCoordinates.X-1), int(generatorCoordinates.Y-1))
 				ChangeCellState(grid, true, int(generatorCoordinates.X)-1, int(generatorCoordinates.Y)-1)
 			}
-
+			if !IsCellAlive(grid, int(generatorCoordinates.X)-1, int(generatorCoordinates.Y)) {
+				playerTileCount++
+			}
 			MakeGenerator(grid, true, int(generatorCoordinates.X)-1, int(generatorCoordinates.Y))
 			ChangeCellOwnership(grid, "player", int(generatorCoordinates.X-1), int(generatorCoordinates.Y))
 			ChangeCellState(grid, true, int(generatorCoordinates.X)-1, int(generatorCoordinates.Y))
 
 			if generatorCoordinates.Y+1 <= 37 {
+				if !IsCellAlive(grid, int(generatorCoordinates.X)-1, int(generatorCoordinates.Y)+1) {
+					playerTileCount++
+				}
 				MakeGenerator(grid, true, int(generatorCoordinates.X-1), int(generatorCoordinates.Y+1))
 				ChangeCellOwnership(grid, "player", int(generatorCoordinates.X-1), int(generatorCoordinates.Y+1))
 				ChangeCellState(grid, true, int(generatorCoordinates.X)-1, int(generatorCoordinates.Y)+1)
@@ -81,11 +99,17 @@ func Movement(grid *[][]cell.Cell, generatorCoordinates *rl.Vector2, ctr *int) {
 		}
 		// middle two
 		if generatorCoordinates.Y+1 <= 37 {
+			if !IsCellAlive(grid, int(generatorCoordinates.X), int(generatorCoordinates.Y)+1) {
+				playerTileCount++
+			}
 			MakeGenerator(grid, true, int(generatorCoordinates.X), int(generatorCoordinates.Y+1))
 			ChangeCellOwnership(grid, "player", int(generatorCoordinates.X), int(generatorCoordinates.Y+1))
 			ChangeCellState(grid, true, int(generatorCoordinates.X), int(generatorCoordinates.Y)+1)
 		}
 		if generatorCoordinates.Y-1 >= 0 {
+			if !IsCellAlive(grid, int(generatorCoordinates.X), int(generatorCoordinates.Y-1)) {
+				playerTileCount++
+			}
 			MakeGenerator(grid, true, int(generatorCoordinates.X), int(generatorCoordinates.Y-1))
 			ChangeCellOwnership(grid, "player", int(generatorCoordinates.X), int(generatorCoordinates.Y-1))
 			ChangeCellState(grid, true, int(generatorCoordinates.X), int(generatorCoordinates.Y)-1)
@@ -94,14 +118,23 @@ func Movement(grid *[][]cell.Cell, generatorCoordinates *rl.Vector2, ctr *int) {
 		// right row
 		if generatorCoordinates.X+1 <= 56 {
 			if generatorCoordinates.Y-1 >= 0 {
+				if !IsCellAlive(grid, int(generatorCoordinates.X)+1, int(generatorCoordinates.Y)-1) {
+					playerTileCount++
+				}
 				MakeGenerator(grid, true, int(generatorCoordinates.X+1), int(generatorCoordinates.Y+1))
 				ChangeCellOwnership(grid, "player", int(generatorCoordinates.X+1), int(generatorCoordinates.Y+1))
 				ChangeCellState(grid, true, int(generatorCoordinates.X)+1, int(generatorCoordinates.Y)+1)
+			}
+			if !IsCellAlive(grid, int(generatorCoordinates.X)+1, int(generatorCoordinates.Y)) {
+				playerTileCount++
 			}
 			MakeGenerator(grid, true, int(generatorCoordinates.X+1), int(generatorCoordinates.Y))
 			ChangeCellOwnership(grid, "player", int(generatorCoordinates.X+1), int(generatorCoordinates.Y))
 			ChangeCellState(grid, true, int(generatorCoordinates.X)+1, int(generatorCoordinates.Y))
 			if generatorCoordinates.Y+1 <= 37 {
+				if !IsCellAlive(grid, int(generatorCoordinates.X)+1, int(generatorCoordinates.Y)+1) {
+					playerTileCount++
+				}
 				MakeGenerator(grid, true, int(generatorCoordinates.X+1), int(generatorCoordinates.Y-1))
 				ChangeCellOwnership(grid, "player", int(generatorCoordinates.X+1), int(generatorCoordinates.Y-1))
 				ChangeCellState(grid, true, int(generatorCoordinates.X)+1, int(generatorCoordinates.Y)-1)
@@ -130,23 +163,15 @@ func Movement(grid *[][]cell.Cell, generatorCoordinates *rl.Vector2, ctr *int) {
 	}
 }
 
-type SelectionButton struct {
-	border    rl.Rectangle
-	Text      string
-	Selected  bool
-	innerRect rl.Rectangle
-}
-
 type Config struct {
-	EnemyCount    int
-	UpdateSpeed   int
+	//EnemyCount    int
+	//UpdateSpeed   int
 	DiceAmplifier int
 }
 
 func main() {
+	var diceAnimationState int
 	var screen string = "menu"
-
-	var EnemyCount int = 3
 	rand.Seed(time.Now().Local().UnixNano())
 	generatorCoordinates := rl.Vector2{X: float32(rand.Intn(57)), Y: float32(rand.Intn(38))}
 	var screenWidth, screenHeight int32 = 1140, 860
@@ -154,11 +179,6 @@ func main() {
 	rl.SetTargetFPS(60)
 	gridSize := rl.Vector2{X: 57, Y: 38}
 	cellWidth := 20
-
-	var enemies = make([]cell.EnemyGeneratorCell, EnemyCount)
-	for i := range enemies {
-		enemies[i] = cell.NewEnemy()
-	}
 
 	var counter int
 	var mainGrid [][]cell.Cell
@@ -244,7 +264,7 @@ func main() {
 			}
 
 			if rl.IsKeyPressed(rl.KeyEnter) {
-				if gameConf.EnemyCount == 0 && gameConf.DiceAmplifier == 0 {
+				if gameConf.DiceAmplifier == 0 {
 					pressEnterPlayText = "(Need a config to start! Configure below.)[Press Enter to play]"
 				} else {
 					screen = "game"
@@ -253,7 +273,7 @@ func main() {
 
 			rl.BeginDrawing()
 			rl.ClearBackground(rl.RayWhite)
-			rl.DrawText("Conquer Of Tiles", screenWidth/2-180, screenHeight/2-400, 40, rl.DarkGray)
+			rl.DrawText("Conquerer Of Tiles", screenWidth/2-180, screenHeight/2-400, 40, rl.DarkGray)
 			rl.DrawText(pressEnterPlayText, screenWidth/2-180, screenHeight/2-355, 20, rl.Gray)
 			rl.DrawText(motd, screenWidth/2-180, screenHeight/2-310, 20, rl.Gold)
 			// options menu
@@ -269,8 +289,7 @@ func main() {
 			rl.BeginMode2D(cam)
 			DrawGrid(&mainGrid)
 			rl.EndMode2D()
-			// space for art
-			// ---
+			rl.DrawText(fmt.Sprintf("%0.1f", playerTileCount*100/(gridSize.X*gridSize.Y)), 30, 30, 30, rl.Red)
 			rl.EndDrawing()
 		}
 	}
