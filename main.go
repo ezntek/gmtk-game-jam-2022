@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"gmtk_2022/cell"
 	"math/rand"
 	"time"
@@ -10,6 +9,7 @@ import (
 )
 
 var playerTileCount float32
+var enemyTileCount float32
 var enemyList []cell.EnemyGeneratorCell
 
 func DrawGrid(grid *[][]cell.Cell) {
@@ -48,7 +48,7 @@ func RollDice(diceAmount int) int {
 func Movement(grid *[][]cell.Cell, generatorCoordinates *rl.Vector2, ctr *int) {
 	if *ctr%18 == 0 {
 		rand.Seed(time.Now().UnixNano())
-		if *ctr%416 == 0 {
+		if *ctr%(18*6) == 0 {
 			enemyList = append(enemyList, cell.NewEnemy())
 		}
 		//var randval int
@@ -69,7 +69,7 @@ func Movement(grid *[][]cell.Cell, generatorCoordinates *rl.Vector2, ctr *int) {
 				enemyList = enemyList[:len(enemyList)-1]
 				break
 			}
-			enemy.Update(grid, *generatorCoordinates)
+			enemy.Update(grid, *generatorCoordinates, &enemyTileCount, &playerTileCount)
 		}
 		// left row
 		if generatorCoordinates.X-1 >= 0 {
@@ -170,7 +170,6 @@ type Config struct {
 }
 
 func main() {
-	var diceAnimationState int
 	var screen string = "menu"
 	rand.Seed(time.Now().Local().UnixNano())
 	generatorCoordinates := rl.Vector2{X: float32(rand.Intn(57)), Y: float32(rand.Intn(38))}
@@ -289,7 +288,9 @@ func main() {
 			rl.BeginMode2D(cam)
 			DrawGrid(&mainGrid)
 			rl.EndMode2D()
-			rl.DrawText(fmt.Sprintf("%0.1f", playerTileCount*100/(gridSize.X*gridSize.Y)), 30, 30, 30, rl.Red)
+			rl.DrawRectangle(20, 20, 110, 30, rl.Black)
+			rl.DrawRectangle(25, 25, 100, 20, rl.RayWhite)
+			rl.DrawRectangle(25, 25, (int32(playerTileCount) * 100 / (int32(gridSize.X) * int32(gridSize.Y))), 20, rl.SkyBlue)
 			rl.EndDrawing()
 		}
 	}

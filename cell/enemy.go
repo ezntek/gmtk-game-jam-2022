@@ -8,11 +8,13 @@ import (
 )
 
 type EnemyGeneratorCell struct {
-	determinedPosition   bool
-	AtLocation           rl.Vector2
-	Direction            int
-	directionBufferCount int
+	IsActive   bool
+	AtLocation rl.Vector2
+	Direction  int
 }
+
+func isCellAlive(grid *[][]Cell, x, y int) bool    { return (*grid)[y][x+57].IsAlive }
+func cellBelogsTo(grid *[][]Cell, x, y int) string { return (*grid)[y][x+57].CellBelogsTo }
 
 //func cellBelogsTo(grid *[][]Cell, x, y int) string      { return (*grid)[y][x+57].CellBelogsTo }
 //func isCellAlive(grid *[][]Cell, x, y int) bool         { return (*grid)[y][x+57].IsAlive }
@@ -31,6 +33,7 @@ func makeGenerator(grid *[][]Cell, ungeneratorify bool, x, y int) {
 	}
 
 }
+
 func (enemy *EnemyGeneratorCell) IsEnemyGeneratorAlive(grid *[][]Cell) bool {
 	if (*grid)[int(enemy.AtLocation.Y)][int(enemy.AtLocation.X)+57].CellBelogsTo == "enemy" {
 		return true
@@ -39,43 +42,40 @@ func (enemy *EnemyGeneratorCell) IsEnemyGeneratorAlive(grid *[][]Cell) bool {
 	}
 }
 
-func (enemy *EnemyGeneratorCell) Update(grid *[][]Cell, playerLocation rl.Vector2) {
-	if enemy.IsEnemyGeneratorAlive(grid) {
-		//fmt.Println(enemy.directionBufferCount)
-		// check player xy
+func (enemy *EnemyGeneratorCell) Update(grid *[][]Cell, playerLocation rl.Vector2, enemyTiles *float32, playerTileCount *float32) {
+	enemy.IsActive = enemy.IsEnemyGeneratorAlive(grid)
+	if enemy.IsActive {
+		// misc movement things
 
-		if (*grid)[int(enemy.AtLocation.Y)][int(enemy.AtLocation.X)+57-1].CellBelogsTo == "enemy" && enemy.AtLocation.X-1 > 0 && enemy.AtLocation.X > playerLocation.X {
-			// left
-			makeGenerator(grid, false, int(enemy.AtLocation.X)-1, int(enemy.AtLocation.Y))
-			makeGenerator(grid, true, int(enemy.AtLocation.X), int(enemy.AtLocation.Y))
-			enemy.AtLocation.X -= 1
-
-		} else if (*grid)[int(enemy.AtLocation.Y)][int(enemy.AtLocation.X)+57+1].CellBelogsTo == "enemy" && enemy.AtLocation.X+1 < 56 && enemy.AtLocation.X < playerLocation.X {
-			makeGenerator(grid, false, int(enemy.AtLocation.X)+1, int(enemy.AtLocation.Y))
-			makeGenerator(grid, true, int(enemy.AtLocation.X), int(enemy.AtLocation.Y))
-			enemy.AtLocation.X += 1
-		} else if (*grid)[int(enemy.AtLocation.Y)-1][int(enemy.AtLocation.X)+57].CellBelogsTo == "enemy" && enemy.AtLocation.Y-1 > 0 && enemy.AtLocation.Y > playerLocation.Y {
-			makeGenerator(grid, false, int(enemy.AtLocation.X), int(enemy.AtLocation.Y)-1)
-			makeGenerator(grid, true, int(enemy.AtLocation.X), int(enemy.AtLocation.Y))
-			enemy.AtLocation.Y -= 1
-		} else if (*grid)[int(enemy.AtLocation.Y)+1][int(enemy.AtLocation.X)+57].CellBelogsTo == "enemy" && enemy.AtLocation.Y+1 > 37 && enemy.AtLocation.Y < playerLocation.Y {
-			makeGenerator(grid, false, int(enemy.AtLocation.X), int(enemy.AtLocation.Y)+1)
-			makeGenerator(grid, true, int(enemy.AtLocation.X), int(enemy.AtLocation.Y))
-			enemy.AtLocation.Y += 1
-		}
-
-		//enemy.MoveGenerator(grid, enemy.Direction)
-		//
+		// left row
 		if enemy.AtLocation.X-1 >= 0 {
 			if enemy.AtLocation.Y-1 >= 0 {
+				if !isCellAlive(grid, int(enemy.AtLocation.X)-1, int(enemy.AtLocation.Y)-1) {
+					*enemyTiles++
+					if cellBelogsTo(grid, int(enemy.AtLocation.X)-1, int(enemy.AtLocation.Y)-1) == "player" {
+						*playerTileCount--
+					}
+				}
 				makeGenerator(grid, true, int(enemy.AtLocation.X)-1, int(enemy.AtLocation.Y)-1)
 				changeCellOwnership(grid, "enemy", int(enemy.AtLocation.X)-1, int(enemy.AtLocation.Y)-1)
 				changeCellState(grid, true, int(enemy.AtLocation.X)-1, int(enemy.AtLocation.Y)-1)
+			}
+			if !isCellAlive(grid, int(enemy.AtLocation.X)-1, int(enemy.AtLocation.Y)) {
+				*enemyTiles++
+				if cellBelogsTo(grid, int(enemy.AtLocation.X)-1, int(enemy.AtLocation.Y)) == "player" {
+					*playerTileCount--
+				}
 			}
 			makeGenerator(grid, true, int(enemy.AtLocation.X)-1, int(enemy.AtLocation.Y))
 			changeCellOwnership(grid, "enemy", int(enemy.AtLocation.X)-1, int(enemy.AtLocation.Y))
 			changeCellState(grid, true, int(enemy.AtLocation.X)-1, int(enemy.AtLocation.Y))
 			if enemy.AtLocation.Y+1 <= 37 {
+				if !isCellAlive(grid, int(enemy.AtLocation.X)-1, int(enemy.AtLocation.Y)+1) {
+					*enemyTiles++
+					if cellBelogsTo(grid, int(enemy.AtLocation.X)-1, int(enemy.AtLocation.Y)+1) == "player" {
+						*playerTileCount--
+					}
+				}
 				makeGenerator(grid, true, int(enemy.AtLocation.X)-1, int(enemy.AtLocation.Y)+1)
 				changeCellOwnership(grid, "enemy", int(enemy.AtLocation.X)-1, int(enemy.AtLocation.Y)+1)
 				changeCellState(grid, true, int(enemy.AtLocation.X)-1, int(enemy.AtLocation.Y)+1)
@@ -83,11 +83,23 @@ func (enemy *EnemyGeneratorCell) Update(grid *[][]Cell, playerLocation rl.Vector
 		}
 		// middle 2
 		if enemy.AtLocation.Y+1 <= 37 {
+			if !isCellAlive(grid, int(enemy.AtLocation.X), int(enemy.AtLocation.Y)+1) {
+				*enemyTiles++
+				if cellBelogsTo(grid, int(enemy.AtLocation.X), int(enemy.AtLocation.Y)+1) == "player" {
+					*playerTileCount--
+				}
+			}
 			makeGenerator(grid, true, int(enemy.AtLocation.X), int(enemy.AtLocation.Y)+1)
 			changeCellOwnership(grid, "enemy", int(enemy.AtLocation.X), int(enemy.AtLocation.Y)+1)
 			changeCellState(grid, true, int(enemy.AtLocation.X), int(enemy.AtLocation.Y)+1)
 		}
 		if enemy.AtLocation.Y-1 >= 0 {
+			if !isCellAlive(grid, int(enemy.AtLocation.X), int(enemy.AtLocation.Y)-1) {
+				*enemyTiles++
+				if cellBelogsTo(grid, int(enemy.AtLocation.X), int(enemy.AtLocation.Y)-1) == "player" {
+					*playerTileCount--
+				}
+			}
 			makeGenerator(grid, true, int(enemy.AtLocation.X), int(enemy.AtLocation.Y)-1)
 			changeCellOwnership(grid, "enemy", int(enemy.AtLocation.X), int(enemy.AtLocation.Y)-1)
 			changeCellState(grid, true, int(enemy.AtLocation.X), int(enemy.AtLocation.Y)-1)
@@ -95,28 +107,47 @@ func (enemy *EnemyGeneratorCell) Update(grid *[][]Cell, playerLocation rl.Vector
 		// right row
 		if enemy.AtLocation.X+1 <= 56 {
 			if enemy.AtLocation.Y-1 >= 0 {
+				if !isCellAlive(grid, int(enemy.AtLocation.X)+1, int(enemy.AtLocation.Y)-1) {
+					*enemyTiles++
+					if cellBelogsTo(grid, int(enemy.AtLocation.X)+1, int(enemy.AtLocation.Y)-1) == "player" {
+						*playerTileCount--
+					}
+				}
 				makeGenerator(grid, true, int(enemy.AtLocation.X)+1, int(enemy.AtLocation.Y)-1)
 				changeCellOwnership(grid, "enemy", int(enemy.AtLocation.X)+1, int(enemy.AtLocation.Y)-1)
 				changeCellState(grid, true, int(enemy.AtLocation.X)+1, int(enemy.AtLocation.Y)-1)
+			}
+			if !isCellAlive(grid, int(enemy.AtLocation.X)+1, int(enemy.AtLocation.Y)-1) {
+				*enemyTiles++
+				if cellBelogsTo(grid, int(enemy.AtLocation.X)+1, int(enemy.AtLocation.Y)) == "player" {
+					*playerTileCount--
+				}
 			}
 			makeGenerator(grid, true, int(enemy.AtLocation.X)+1, int(enemy.AtLocation.Y))
 			changeCellOwnership(grid, "enemy", int(enemy.AtLocation.X)+1, int(enemy.AtLocation.Y))
 			changeCellState(grid, true, int(enemy.AtLocation.X)+1, int(enemy.AtLocation.Y))
 			if enemy.AtLocation.Y <= 37 {
+				if !isCellAlive(grid, int(enemy.AtLocation.X)+1, int(enemy.AtLocation.Y)+1) {
+					*enemyTiles++
+					if cellBelogsTo(grid, int(enemy.AtLocation.X)+1, int(enemy.AtLocation.Y)+1) == "player" {
+						*playerTileCount--
+					}
+				}
 				makeGenerator(grid, true, int(enemy.AtLocation.X)+1, int(enemy.AtLocation.Y)+1)
 				changeCellOwnership(grid, "enemy", int(enemy.AtLocation.X)+1, int(enemy.AtLocation.Y)+1)
 				changeCellState(grid, true, int(enemy.AtLocation.X)+1, int(enemy.AtLocation.Y)+1)
 			}
 		}
+		makeGenerator(grid, true, int(enemy.AtLocation.X), int(enemy.AtLocation.Y))
 		//enemy.determinedPosition = false
 	}
 }
 
 func NewEnemy() EnemyGeneratorCell {
-	x, y := rand.Intn(57), rand.Intn(38)
+	x, y := 1+rand.Intn(56-1), 1+rand.Intn(37-1)
 	return EnemyGeneratorCell{
-		directionBufferCount: 0,
-		Direction:            int(rl.GetRandomValue(1, 4)),
-		AtLocation:           rl.Vector2{X: float32(x), Y: float32(y)},
+		IsActive:   true,
+		Direction:  int(rl.GetRandomValue(1, 4)),
+		AtLocation: rl.Vector2{X: float32(x), Y: float32(y)},
 	}
 }
