@@ -7,11 +7,16 @@ import (
 )
 
 type Cell struct {
-	borderRect   rl.Rectangle
-	InnerRect    rl.Rectangle
-	IsAlive      bool
-	IsGenerator  bool
-	CellBelogsTo string
+	EnemyHasSetLocation bool
+	borderRect          rl.Rectangle
+	InnerRect           rl.Rectangle
+	IsAlive             bool
+	IsGenerator         bool
+	CellBelogsTo        string
+	EnemyGenTexture     rl.Texture2D
+	EnemyTexture        rl.Texture2D
+	PlayerTexture       rl.Texture2D
+	PlayerGenTexture    rl.Texture2D
 }
 
 func (cell *Cell) Draw() {
@@ -23,12 +28,14 @@ func (cell *Cell) Draw() {
 		case "player":
 			rl.DrawRectangleRec(cell.InnerRect, rl.Lime)
 			if cell.IsGenerator {
-				rl.DrawRectangle(cell.InnerRect.ToInt32().X+2, cell.InnerRect.ToInt32().Y+2, 7, 7, rl.DarkGreen)
+				rl.DrawRectangle(cell.InnerRect.ToInt32().X+2, cell.InnerRect.ToInt32().Y+2, (cell.InnerRect.ToInt32().Width/2)-2, (cell.InnerRect.ToInt32().Height/2)-2, rl.DarkGreen)
+				//rl.DrawTextureRec(cell.PlayerGenTexture, cell.borderRect, rl.Vector2{X: cell.InnerRect.X - 1, Y: cell.InnerRect.Y - 1}, rl.RayWhite)
 			}
 		case "enemy":
 			rl.DrawRectangleRec(cell.InnerRect, rl.Pink)
 			if cell.IsGenerator {
-				rl.DrawRectangle(cell.InnerRect.ToInt32().X+2, cell.InnerRect.ToInt32().Y+2, 7, 7, rl.Red)
+				rl.DrawRectangle(cell.InnerRect.ToInt32().X+2, cell.InnerRect.ToInt32().Y+2, (cell.InnerRect.ToInt32().Width/2)-2, (cell.InnerRect.ToInt32().Height/2)-2, rl.Red)
+				//rl.DrawTextureRec(cell.EnemyGenTexture, cell.InnerRect, rl.Vector2{X: cell.InnerRect.X, Y: cell.InnerRect.Y + 1}, rl.RayWhite)
 			}
 		default:
 			break
@@ -39,10 +46,15 @@ func (cell *Cell) Draw() {
 
 func New(atLocation rl.Vector2, size int32, as string) Cell {
 	return Cell{
-		borderRect:   rl.NewRectangle(atLocation.X, atLocation.Y, float32(size), float32(size)),
-		InnerRect:    rl.NewRectangle(atLocation.X+1, atLocation.Y+1, float32(size-2), float32(size-2)),
-		IsAlive:      false,
-		IsGenerator:  false,
-		CellBelogsTo: as,
+		EnemyHasSetLocation: false,
+		borderRect:          rl.NewRectangle(atLocation.X, atLocation.Y, float32(size), float32(size)),
+		InnerRect:           rl.NewRectangle(atLocation.X+1, atLocation.Y+1, float32(size-2), float32(size-2)),
+		IsAlive:             false,
+		IsGenerator:         false,
+		CellBelogsTo:        "player",
+		//EnemyGenTexture:     rl.LoadTexture("resources/EnemyGeneratorTile.png"),
+		//EnemyTexture:        rl.LoadTexture("resources/EnemyTile.png"),
+		//PlayerTexture:       rl.LoadTexture("resources/PlayerTile.png"),
+		//PlayerGenTexture:    rl.LoadTexture("resources/PlayerGeneratorTile.png"),
 	}
 }
