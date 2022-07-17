@@ -1,13 +1,14 @@
 package main
 
 import (
-	"fmt"
 	"gmtk_2022/cell"
 	"math/rand"
 	"time"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
+
+var enemyList []cell.EnemyGeneratorCell
 
 func DrawGrid(grid *[][]cell.Cell) {
 	for _, column := range *grid {
@@ -42,12 +43,13 @@ func RollDice(diceAmount int) int {
 	}
 	return 0
 }
-func Movement(grid *[][]cell.Cell, enemyList *[]cell.EnemyGeneratorCell, generatorCoordinates *rl.Vector2, ctr *int) {
+func Movement(grid *[][]cell.Cell, generatorCoordinates *rl.Vector2, ctr *int) {
 	if *ctr%18 == 0 {
 		rand.Seed(time.Now().UnixNano())
+		enemyList = append(enemyList, cell.NewEnemy())
 		//var randval int
 		//rv := rand.Intn(4)
-		for _, enemy := range *enemyList {
+		for _, enemy := range enemyList {
 			if !(*grid)[int(enemy.AtLocation.Y)][int(enemy.AtLocation.X)+57].EnemyHasSetLocation {
 				(*grid)[int(enemy.AtLocation.Y)][int(enemy.AtLocation.X)+57].EnemyHasSetLocation = true
 				(*grid)[int(enemy.AtLocation.Y)][int(enemy.AtLocation.X)+57].IsGenerator = true
@@ -181,8 +183,11 @@ func main() {
 	var currentlyConfiguring string
 
 	var motdEntries = [...]string{
-		"never gonna give you up, raylib!",
-		"ze coconut nut is a giant nut;",
+		"mechkeys",
+		"010909",
+		"050209",
+		"never gonna give you up, (raylib!)",
+		"ze coconut nut is a giant nut",
 		"if you eat too much you get very fat!",
 		"The Work of easontek2398(tek967)!",
 		"Also the work of meowscripty!",
@@ -192,18 +197,18 @@ func main() {
 		"Sad music for life - kittycat",
 		"The creators are Gophers...",
 		"go.dev",
+		"lofi girl will give you hugs",
 		"egg is a baldhead",
 		"jason is an asshole - egg",
 		"eason is an asshole - kittycat",
 		"peterguo2009 makes music on soundcloud",
 	}
 
-	var configuredEnemyCount, configuredDiceAmplifier bool = false, false
-	var doneConfiguringEnemyCount, doneConfiguringDiceAmplifier bool = false, false
+	var configuredDiceAmplifier bool = false
+	var doneConfiguringDiceAmplifier bool = false
 	var motd = motdEntries[rand.Intn(len(motdEntries))]
 	var pressEnterPlayText string = "[Press Enter to play]"
-	var enemyCountText string = "Enemy Count (how many enemies are onscreen) [press c to configure]"
-	var diceAmplifierText string = "Dice Amplifier (the number the result from the dice roll is multiplied, press 3 if unsure.) [press d to configure]"
+	var diceAmplifierText string = "Dice Amplifier (amplifier for any give dice roll result, press 3 if unsure.) [press d to configure]"
 	MakeGenerator(&mainGrid, false, int(generatorCoordinates.X), int(generatorCoordinates.Y))
 	var gameConf Config
 
@@ -211,34 +216,12 @@ func main() {
 		counter++
 		if screen == "menu" {
 			if currentlyConfiguring == "" {
-				if rl.IsKeyPressed(rl.KeyC) && !configuredEnemyCount {
-					currentlyConfiguring = "enemycount"
-				}
 				if rl.IsKeyPressed(rl.KeyD) && !configuredDiceAmplifier {
 					currentlyConfiguring = "diceamplifier"
 				}
 			}
 
 			switch currentlyConfiguring {
-			case "enemycount":
-				enemyCountText = "Enemy Count [press (1) (2) or (3)]"
-				if rl.IsKeyPressed(rl.KeyOne) {
-					doneConfiguringEnemyCount = true
-					gameConf.EnemyCount = 1
-				}
-				if rl.IsKeyPressed(rl.KeyTwo) {
-					doneConfiguringEnemyCount = true
-					gameConf.EnemyCount = 2
-				}
-				if rl.IsKeyPressed(rl.KeyThree) {
-					doneConfiguringEnemyCount = true
-					gameConf.EnemyCount = 3
-				}
-				if doneConfiguringEnemyCount {
-					configuredEnemyCount = true
-					enemyCountText = "Enemy Count [done]"
-					currentlyConfiguring = ""
-				}
 			case "diceamplifier":
 				diceAmplifierText = "Dice Amplifier [press (1) (3) or (5)]"
 				if rl.IsKeyPressed(rl.KeyOne) {
@@ -264,8 +247,6 @@ func main() {
 				if gameConf.EnemyCount == 0 && gameConf.DiceAmplifier == 0 {
 					pressEnterPlayText = "(Need a config to start! Configure below.)[Press Enter to play]"
 				} else {
-					fmt.Printf(string(gameConf.EnemyCount))
-					fmt.Printf(string(gameConf.DiceAmplifier))
 					screen = "game"
 				}
 			}
@@ -277,19 +258,19 @@ func main() {
 			rl.DrawText(motd, screenWidth/2-180, screenHeight/2-310, 20, rl.Gold)
 			// options menu
 			rl.DrawText("Config", 20, screenHeight/2-20, 50, rl.Black)
-			rl.DrawText(enemyCountText, 20, screenHeight/2+40, 20, rl.DarkGray)
 			//rl.DrawText(updateSpeedText, screenWidth/2-180, screenHeight/2+65, 20, rl.DarkGray)
-			rl.DrawText(diceAmplifierText, 20, screenHeight/2+65, 16, rl.DarkGray)
+			rl.DrawText(diceAmplifierText, 20, screenHeight/2+65, 20, rl.DarkGray)
 			rl.EndDrawing()
 		}
 		if screen == "game" {
-			Movement(&mainGrid, &enemies, &generatorCoordinates, &counter)
+			Movement(&mainGrid, &generatorCoordinates, &counter)
 			rl.BeginDrawing()
 			rl.ClearBackground(rl.RayWhite)
 			rl.BeginMode2D(cam)
 			DrawGrid(&mainGrid)
 			rl.EndMode2D()
-			rl.DrawText(fmt.Sprintf("Generator on (%0.0f, %0.0f)", generatorCoordinates.X, generatorCoordinates.Y), 20, 20, 30, rl.Black)
+			// space for art
+			// ---
 			rl.EndDrawing()
 		}
 	}
